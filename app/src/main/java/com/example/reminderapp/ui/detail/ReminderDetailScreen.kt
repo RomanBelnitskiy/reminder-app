@@ -46,6 +46,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.reminderapp.R
 import com.example.reminderapp.domain.model.RecurrenceType
 import com.example.reminderapp.domain.model.Reminder
+import com.example.reminderapp.ui.permission.NotificationPermissionRationaleDialog
+import com.example.reminderapp.ui.permission.rememberNotificationPermissionState
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -58,6 +60,7 @@ fun ReminderDetailScreen(
     viewModel: ReminderDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val permState = rememberNotificationPermissionState { viewModel.toggleActive() }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -104,13 +107,21 @@ fun ReminderDetailScreen(
             else -> {
                 ReminderDetailContent(
                     reminder = uiState.reminder!!,
-                    onToggleActive = viewModel::toggleActive,
+                    onToggleActive = {
+                        if (uiState.reminder?.isActive == false) {
+                            permState.requestOrProceed()
+                        } else {
+                            viewModel.toggleActive()
+                        }
+                    },
                     onDeleteClick = viewModel::onDeleteClick,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
         }
     }
+
+    NotificationPermissionRationaleDialog(permState)
 
     if (uiState.showDeleteDialog) {
         AlertDialog(

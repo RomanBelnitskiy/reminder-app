@@ -61,4 +61,9 @@
     <string name="recurrence_type_monthly">Щомісяця</string>
     <string name="recurrence_type_yearly">Щороку</string>
     <string name="recurrence_type_custom">Власний інтервал</string>
+
+    <!-- Permission rationale -->
+    <string name="permission_notification_title">Дозвіл на сповіщення</string>
+    <string name="permission_notification_rationale">Для відправки нагадувань потрібен дозвіл на показ сповіщень. Надайте його в налаштуваннях застосунку.</string>
+    <string name="action_open_settings">Відкрити налаштування</string>
 </resources>

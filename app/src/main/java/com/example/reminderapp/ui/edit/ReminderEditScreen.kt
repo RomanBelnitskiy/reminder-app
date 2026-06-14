@@ -51,6 +51,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.reminderapp.R
 import com.example.reminderapp.domain.model.RecurrenceType
 import com.example.reminderapp.domain.model.ReminderType
+import com.example.reminderapp.ui.permission.NotificationPermissionRationaleDialog
+import com.example.reminderapp.ui.permission.rememberNotificationPermissionState
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -61,6 +63,7 @@ fun ReminderEditScreen(
     viewModel: ReminderEditViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val permState = rememberNotificationPermissionState { viewModel.onSave() }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -69,6 +72,8 @@ fun ReminderEditScreen(
             }
         }
     }
+
+    NotificationPermissionRationaleDialog(permState)
 
     Scaffold(
         topBar = {
@@ -101,7 +106,7 @@ fun ReminderEditScreen(
                 onTimeChange = viewModel::onTimeChange,
                 onRecurrenceTypeChange = viewModel::onRecurrenceTypeChange,
                 onRecurrenceIntervalChange = viewModel::onRecurrenceIntervalChange,
-                onSave = viewModel::onSave,
+                onSave = permState::requestOrProceed,
                 onCancel = viewModel::onCancel,
                 modifier = Modifier.padding(paddingValues)
             )
