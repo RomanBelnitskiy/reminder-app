@@ -1,3 +1,64 @@
 <resources>
     <string name="app_name">Reminder App</string>
+
+    <!-- List screen -->
+    <string name="screen_title_reminders">Нагадування</string>
+    <string name="search_placeholder">Пошук…</string>
+    <string name="reminder_deleted">Нагадування видалено</string>
+    <string name="undo">Скасувати</string>
+    <string name="status_active">Активне</string>
+    <string name="status_inactive">Неактивне</string>
+    <string name="empty_reminders_list">Немає нагадувань</string>
+    <string name="fab_create_reminder">Створити нагадування</string>
+
+    <!-- Settings screen -->
+    <string name="screen_title_settings">Налаштування</string>
+    <string name="settings_sound_label">Звук нотифікацій</string>
+    <string name="settings_sound_description">Відтворювати звук при нагадуванні</string>
+    <string name="action_settings">Налаштування</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Нагадування</string>
+    <string name="notification_default_text">Нагадування</string>
+    <string name="notification_action_open">Відкрити</string>
+
+    <!-- Detail screen -->
+    <string name="action_edit">Редагувати</string>
+    <string name="action_delete">Видалити</string>
+    <string name="action_activate">Активувати</string>
+    <string name="action_deactivate">Деактивувати</string>
+    <string name="dialog_delete_title">Видалити нагадування?</string>
+    <string name="dialog_delete_message">Нагадування буде видалено назавжди</string>
+    <string name="reminder_not_found">Нагадування не знайдено</string>
+    <string name="detail_interval_format">Кожні %d днів</string>
+
+    <!-- Edit screen -->
+    <string name="screen_title_create_reminder">Нове нагадування</string>
+    <string name="screen_title_edit_reminder">Редагувати нагадування</string>
+    <string name="label_title">Заголовок</string>
+    <string name="label_description">Опис</string>
+    <string name="label_type">Тип</string>
+    <string name="label_date">Дата</string>
+    <string name="label_time">Час</string>
+    <string name="label_recurrence">Повторення</string>
+    <string name="label_interval_days">Інтервал (днів)</string>
+    <string name="action_save">Зберегти</string>
+    <string name="error_title_empty">Заголовок не може бути порожнім</string>
+    <string name="error_date_past">Дата має бути в майбутньому</string>
+
+    <!-- ReminderType labels -->
+    <string name="reminder_type_birthday">День народження</string>
+    <string name="reminder_type_meeting">Зустріч</string>
+    <string name="reminder_type_bill">Рахунок</string>
+    <string name="reminder_type_medicine">Ліки</string>
+    <string name="reminder_type_task">Завдання</string>
+    <string name="reminder_type_anniversary">Річниця</string>
+
+    <!-- RecurrenceType labels -->
+    <string name="recurrence_type_one_time">Одноразово</string>
+    <string name="recurrence_type_daily">Щодня</string>
+    <string name="recurrence_type_weekly">Щотижня</string>
+    <string name="recurrence_type_monthly">Щомісяця</string>
+    <string name="recurrence_type_yearly">Щороку</string>
+    <string name="recurrence_type_custom">Власний інтервал</string>
 </resources>
