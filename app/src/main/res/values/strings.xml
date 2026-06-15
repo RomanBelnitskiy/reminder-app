@@ -23,6 +23,7 @@
     <string name="notification_action_open">Відкрити</string>
 
     <!-- Detail screen -->
+    <string name="action_back">Назад</string>
     <string name="action_edit">Редагувати</string>
     <string name="action_delete">Видалити</string>
     <string name="action_activate">Активувати</string>
