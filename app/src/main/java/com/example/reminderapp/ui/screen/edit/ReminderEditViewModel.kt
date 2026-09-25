@@ -1,13 +1,14 @@
-package com.example.reminderapp.ui.edit
+package com.example.reminderapp.ui.screen.edit
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.reminderapp.core.scheduler.ReminderScheduler
 import com.example.reminderapp.data.repository.ReminderRepository
-import com.example.reminderapp.domain.model.Reminder
 import com.example.reminderapp.domain.model.RecurrenceType
+import com.example.reminderapp.domain.model.Reminder
+import com.example.reminderapp.domain.model.ReminderSound
 import com.example.reminderapp.domain.model.ReminderType
-import com.example.reminderapp.notification.ReminderScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,28 +18,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import javax.inject.Inject
 
-data class ReminderEditUiState(
-    val title: String = "",
-    val description: String = "",
-    val type: ReminderType = ReminderType.TASK,
-    val date: LocalDate = LocalDate.now().plusDays(1),
-    val time: LocalTime = LocalTime.of(9, 0),
-    val recurrenceType: RecurrenceType = RecurrenceType.ONE_TIME,
-    val recurrenceInterval: Int? = null,
-    val isLoading: Boolean = false,
-    val titleError: Boolean = false,
-    val dateError: Boolean = false
-)
-
-sealed interface EditUiEvent {
-    data object NavigateBack : EditUiEvent
-}
 
 @HiltViewModel
 class ReminderEditViewModel @Inject constructor(
@@ -48,28 +32,33 @@ class ReminderEditViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val reminderId: Long? = savedStateHandle.get<Long>("id")
-    val isEditMode: Boolean = reminderId != null
 
     private val _uiState = MutableStateFlow(ReminderEditUiState())
     val uiState: StateFlow<ReminderEditUiState> = _uiState.asStateFlow()
 
-    private val _events = Channel<EditUiEvent>()
-    val events = _events.receiveAsFlow()
+    private val _effects = Channel<ReminderEditUiEffect>()
+    val effects = _effects.receiveAsFlow()
 
     private var originalCreatedAt: Long = System.currentTimeMillis()
 
     init {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isEditMode = reminderId != null) }
+        }
         reminderId?.let { loadReminder(it) }
     }
 
     private fun loadReminder(id: Long) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
+
             val reminder = repository.getById(id) ?: return@launch
+
             originalCreatedAt = reminder.createdAt
             val localDateTime = Instant.ofEpochMilli(reminder.reminderDateTime)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime()
+
             _uiState.update {
                 it.copy(
                     title = reminder.title,
@@ -79,30 +68,50 @@ class ReminderEditViewModel @Inject constructor(
                     time = localDateTime.toLocalTime(),
                     recurrenceType = reminder.recurrenceType,
                     recurrenceInterval = reminder.recurrenceInterval,
+                    sound = reminder.sound,
                     isLoading = false
                 )
             }
         }
     }
 
-    fun onTitleChange(value: String) =
+    fun processUiEvent(event: ReminderEditUiEvent) {
+        when(event) {
+            ReminderEditUiEvent.OnCancelClicked -> onNavigateBack()
+            ReminderEditUiEvent.OnSave -> onSave()
+            ReminderEditUiEvent.OnNavigateBack -> onNavigateBack()
+            is ReminderEditUiEvent.OnTitleChange -> onTitleChange(event.value)
+            is ReminderEditUiEvent.OnDescriptionChange -> onDescriptionChange(event.value)
+            is ReminderEditUiEvent.OnTypeChange -> onTypeChange(event.value)
+            is ReminderEditUiEvent.OnSoundChange -> onSoundChange(event.value)
+            is ReminderEditUiEvent.OnDateChange -> onDateChange(event.value)
+            is ReminderEditUiEvent.OnTimeChange -> onTimeChange(event.hour, event.minute)
+            is ReminderEditUiEvent.OnRecurrenceTypeChange -> onRecurrenceTypeChange(event.value)
+            is ReminderEditUiEvent.OnRecurrenceIntervalChange -> onRecurrenceIntervalChange(event.value)
+        }
+    }
+
+    private fun onTitleChange(value: String) =
         _uiState.update { it.copy(title = value, titleError = false) }
 
-    fun onDescriptionChange(value: String) =
+    private fun onDescriptionChange(value: String) =
         _uiState.update { it.copy(description = value) }
 
-    fun onTypeChange(value: ReminderType) =
+    private fun onTypeChange(value: ReminderType) =
         _uiState.update { it.copy(type = value) }
 
-    fun onDateChange(millis: Long) {
+    private fun onSoundChange(value: ReminderSound) =
+        _uiState.update { it.copy(sound = value) }
+
+    private fun onDateChange(millis: Long) {
         val date = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
         _uiState.update { it.copy(date = date, dateError = false) }
     }
 
-    fun onTimeChange(hour: Int, minute: Int) =
+    private fun onTimeChange(hour: Int, minute: Int) =
         _uiState.update { it.copy(time = LocalTime.of(hour, minute), dateError = false) }
 
-    fun onRecurrenceTypeChange(value: RecurrenceType) =
+    private fun onRecurrenceTypeChange(value: RecurrenceType) =
         _uiState.update {
             it.copy(
                 recurrenceType = value,
@@ -110,10 +119,10 @@ class ReminderEditViewModel @Inject constructor(
             )
         }
 
-    fun onRecurrenceIntervalChange(value: String) =
+    private fun onRecurrenceIntervalChange(value: String) =
         _uiState.update { it.copy(recurrenceInterval = value.filter(Char::isDigit).toIntOrNull()) }
 
-    fun onSave() {
+    private fun onSave() {
         val state = _uiState.value
         val reminderDateTime = state.date.atTime(state.time)
             .atZone(ZoneId.systemDefault())
@@ -136,11 +145,12 @@ class ReminderEditViewModel @Inject constructor(
                 type = state.type,
                 reminderDateTime = reminderDateTime,
                 recurrenceType = state.recurrenceType,
+                sound = state.sound,
                 recurrenceInterval = state.recurrenceInterval,
                 isActive = true,
                 createdAt = originalCreatedAt
             )
-            val scheduledReminder = if (isEditMode) {
+            val scheduledReminder = if (_uiState.value.isEditMode) {
                 repository.update(reminder)
                 reminder
             } else {
@@ -148,11 +158,13 @@ class ReminderEditViewModel @Inject constructor(
                 reminder.copy(id = newId)
             }
             scheduler.schedule(scheduledReminder)
-            _events.send(EditUiEvent.NavigateBack)
+            _effects.send(ReminderEditUiEffect.NavigateBack)
         }
     }
 
-    fun onCancel() {
-        viewModelScope.launch { _events.send(EditUiEvent.NavigateBack) }
+    private fun onNavigateBack() {
+        viewModelScope.launch {
+            _effects.send(ReminderEditUiEffect.NavigateBack)
+        }
     }
 }

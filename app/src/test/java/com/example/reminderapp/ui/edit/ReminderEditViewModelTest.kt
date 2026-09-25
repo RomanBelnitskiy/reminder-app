@@ -7,6 +7,8 @@ import assertk.assertions.isEqualTo
 import androidx.lifecycle.SavedStateHandle
 import com.example.reminderapp.fake.FakeReminderRepository
 import com.example.reminderapp.fake.FakeReminderScheduler
+import com.example.reminderapp.ui.screen.edit.ReminderEditUiEvent
+import com.example.reminderapp.ui.screen.edit.ReminderEditViewModel
 import com.example.reminderapp.util.MainDispatcherExtension
 import com.example.reminderapp.util.testReminder
 import kotlinx.coroutines.test.runTest
@@ -67,9 +69,9 @@ class ReminderEditViewModelTest {
         viewModel.onTitleChange("Meeting")
         // Date is default: now + 1 day, which is valid
 
-        viewModel.events.test {
+        viewModel.effects.test {
             viewModel.onSave()
-            assertThat(awaitItem()).isEqualTo(EditUiEvent.NavigateBack)
+            assertThat(awaitItem()).isEqualTo(ReminderEditUiEvent.NavigateBack)
         }
 
         assertThat(repository.getAllActive()).hasSize(1)
@@ -92,9 +94,9 @@ class ReminderEditViewModelTest {
         val viewModel = createViewModel()
         viewModel.onTitleChange("Should not save")
 
-        viewModel.events.test {
+        viewModel.effects.test {
             viewModel.onCancel()
-            assertThat(awaitItem()).isEqualTo(EditUiEvent.NavigateBack)
+            assertThat(awaitItem()).isEqualTo(ReminderEditUiEvent.NavigateBack)
         }
 
         assertThat(repository.getAllActive()).hasSize(0)

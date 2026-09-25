@@ -1,4 +1,4 @@
-package com.example.reminderapp.ui.edit
+package com.example.reminderapp.ui.screen.edit
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,7 +38,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,33 +47,40 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import com.example.reminderapp.R
 import com.example.reminderapp.domain.model.RecurrenceType
+import com.example.reminderapp.domain.model.ReminderSound
 import com.example.reminderapp.domain.model.ReminderType
 import com.example.reminderapp.ui.permission.NotificationPermissionRationaleDialog
 import com.example.reminderapp.ui.permission.rememberNotificationPermissionState
+import kotlinx.coroutines.flow.Flow
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReminderEditScreen(
-    onNavigateBack: () -> Unit,
-    viewModel: ReminderEditViewModel = hiltViewModel()
+fun ReminderEditScreenRoute(
+    state: ReminderEditUiState,
+    processUiEvent: (ReminderEditUiEvent) -> Unit,
+    effects: Flow<ReminderEditUiEffect>,
+    controller: NavHostController
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val permState = rememberNotificationPermissionState { viewModel.onSave() }
+    ReminderEditEffectHandler(effects, controller)
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collect { event ->
-            when (event) {
-                EditUiEvent.NavigateBack -> onNavigateBack()
-            }
-        }
+    ReminderEditScreen(state, processUiEvent)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReminderEditScreen(
+    state: ReminderEditUiState,
+    processUiEvent: (ReminderEditUiEvent) -> Unit
+) {
+
+    val permState = rememberNotificationPermissionState {
+        processUiEvent(ReminderEditUiEvent.OnSave)
     }
-
     NotificationPermissionRationaleDialog(permState)
 
     Scaffold(
@@ -83,13 +89,17 @@ fun ReminderEditScreen(
                 title = {
                     Text(
                         stringResource(
-                            if (viewModel.isEditMode) R.string.screen_title_edit_reminder
+                            if (state.isEditMode) R.string.screen_title_edit_reminder
                             else R.string.screen_title_create_reminder
                         )
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(
+                        onClick = {
+                            processUiEvent(ReminderEditUiEvent.OnNavigateBack)
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.action_back)
@@ -99,7 +109,7 @@ fun ReminderEditScreen(
             )
         }
     ) { paddingValues ->
-        if (uiState.isLoading) {
+        if (state.isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(paddingValues),
                 contentAlignment = Alignment.Center
@@ -108,20 +118,40 @@ fun ReminderEditScreen(
             }
         } else {
             ReminderEditForm(
-                uiState = uiState,
-                onTitleChange = viewModel::onTitleChange,
-                onDescriptionChange = viewModel::onDescriptionChange,
-                onTypeChange = viewModel::onTypeChange,
-                onDateChange = viewModel::onDateChange,
-                onTimeChange = viewModel::onTimeChange,
-                onRecurrenceTypeChange = viewModel::onRecurrenceTypeChange,
-                onRecurrenceIntervalChange = viewModel::onRecurrenceIntervalChange,
+                uiState = state,
+                onTitleChange = {
+                    processUiEvent(ReminderEditUiEvent.OnTitleChange(it))
+                },
+                onDescriptionChange = {
+                    processUiEvent(ReminderEditUiEvent.OnDescriptionChange(it))
+                },
+                onTypeChange = {
+                    processUiEvent(ReminderEditUiEvent.OnTypeChange(it))
+                },
+                onSoundChange = {
+                    processUiEvent(ReminderEditUiEvent.OnSoundChange(it))
+                },
+                onDateChange = {
+                    processUiEvent(ReminderEditUiEvent.OnDateChange(it))
+                },
+                onTimeChange = { hour, minute ->
+                    processUiEvent(ReminderEditUiEvent.OnTimeChange(hour, minute))
+                },
+                onRecurrenceTypeChange = {
+                    processUiEvent(ReminderEditUiEvent.OnRecurrenceTypeChange(it))
+                },
+                onRecurrenceIntervalChange = {
+                    processUiEvent(ReminderEditUiEvent.OnRecurrenceIntervalChange(it))
+                },
                 onSave = permState::requestOrProceed,
-                onCancel = viewModel::onCancel,
+                onCancel = {
+                    processUiEvent(ReminderEditUiEvent.OnCancelClicked)
+                },
                 modifier = Modifier.padding(paddingValues)
             )
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -131,6 +161,7 @@ private fun ReminderEditForm(
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onTypeChange: (ReminderType) -> Unit,
+    onSoundChange: (ReminderSound) -> Unit,
     onDateChange: (Long) -> Unit,
     onTimeChange: (Int, Int) -> Unit,
     onRecurrenceTypeChange: (RecurrenceType) -> Unit,
@@ -142,6 +173,7 @@ private fun ReminderEditForm(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var typeExpanded by remember { mutableStateOf(false) }
+    var soundExpanded by remember { mutableStateOf(false) }
     var recurrenceExpanded by remember { mutableStateOf(false) }
 
     val dateFormatter = remember { DateTimeFormatter.ofPattern("dd.MM.yyyy") }
@@ -202,6 +234,37 @@ private fun ReminderEditForm(
                         onClick = {
                             onTypeChange(type)
                             typeExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        // Sound dropdown
+        ExposedDropdownMenuBox(
+            expanded = soundExpanded,
+            onExpandedChange = { soundExpanded = it }
+        ) {
+            OutlinedTextField(
+                value = stringResource(uiState.sound.labelRes),
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(stringResource(R.string.label_sound)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = soundExpanded) },
+                modifier = Modifier
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                    .fillMaxWidth()
+            )
+            ExposedDropdownMenu(
+                expanded = soundExpanded,
+                onDismissRequest = { soundExpanded = false }
+            ) {
+                ReminderSound.entries.forEach { sound ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(sound.labelRes)) },
+                        onClick = {
+                            onSoundChange(sound)
+                            soundExpanded = false
                         }
                     )
                 }

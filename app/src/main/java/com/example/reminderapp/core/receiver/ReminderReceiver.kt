@@ -4,10 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.core.content.ContextCompat
 import com.example.reminderapp.core.audio.AudioController
 import com.example.reminderapp.core.audio.ReminderAudio
-import com.example.reminderapp.core.audio.ReminderAudioService
 import com.example.reminderapp.core.notification.NotificationHelper
 import com.example.reminderapp.domain.usecase.ReminderHandlerUseCase
 import dagger.hilt.android.AndroidEntryPoint

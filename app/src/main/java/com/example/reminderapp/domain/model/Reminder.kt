@@ -1,7 +1,5 @@
 package com.example.reminderapp.domain.model
 
-import com.example.reminderapp.domain.model.ReminderSound
-
 data class Reminder(
     val id: Long = 0,
     val title: String,

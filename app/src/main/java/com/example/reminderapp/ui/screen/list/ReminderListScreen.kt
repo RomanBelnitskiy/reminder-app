@@ -32,6 +32,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxDefaults
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -161,7 +162,8 @@ private fun ReminderSwipeItem(
     onDismiss: () -> Unit
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { it == SwipeToDismissBoxValue.EndToStart }
+        SwipeToDismissBoxValue.Settled,
+        SwipeToDismissBoxDefaults.positionalThreshold
     )
 
     LaunchedEffect(dismissState.currentValue) {

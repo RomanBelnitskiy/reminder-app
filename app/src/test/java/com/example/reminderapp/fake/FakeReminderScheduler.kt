@@ -9,4 +9,8 @@ class FakeReminderScheduler : ReminderScheduler {
 
     override fun schedule(reminder: Reminder) { scheduled += reminder.id }
     override fun cancel(reminderId: Long) { cancelled += reminderId }
+    override fun reschedule(reminder: Reminder) {
+        scheduled += reminder.id
+        cancelled += reminder.id
+    }
 }
