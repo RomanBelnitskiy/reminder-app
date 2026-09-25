@@ -2,6 +2,7 @@ package com.example.reminderapp.data.db
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.reminderapp.domain.model.ReminderSound
 import com.example.reminderapp.domain.model.Reminder
 import com.example.reminderapp.domain.model.RecurrenceType
 import com.example.reminderapp.domain.model.ReminderType
@@ -16,6 +17,7 @@ data class ReminderEntity(
     val recurrenceType: RecurrenceType,
     val recurrenceInterval: Int?,
     val isActive: Boolean,
+    val sound: ReminderSound,
     val createdAt: Long
 )
 
@@ -28,6 +30,7 @@ fun ReminderEntity.toDomain() = Reminder(
     recurrenceType = recurrenceType,
     recurrenceInterval = recurrenceInterval,
     isActive = isActive,
+    sound = sound,
     createdAt = createdAt
 )
 
@@ -40,5 +43,6 @@ fun Reminder.toEntity() = ReminderEntity(
     recurrenceType = recurrenceType,
     recurrenceInterval = recurrenceInterval,
     isActive = isActive,
+    sound = sound,
     createdAt = createdAt
 )

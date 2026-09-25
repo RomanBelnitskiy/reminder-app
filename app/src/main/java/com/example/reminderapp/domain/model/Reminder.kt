@@ -1,5 +1,7 @@
 package com.example.reminderapp.domain.model
 
+import com.example.reminderapp.domain.model.ReminderSound
+
 data class Reminder(
     val id: Long = 0,
     val title: String,
@@ -9,5 +11,6 @@ data class Reminder(
     val recurrenceType: RecurrenceType,
     val recurrenceInterval: Int? = null,
     val isActive: Boolean = true,
+    val sound: ReminderSound = ReminderSound.DEFAULT,
     val createdAt: Long = System.currentTimeMillis()
 )

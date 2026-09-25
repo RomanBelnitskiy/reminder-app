@@ -1,11 +1,11 @@
-package com.example.reminderapp.ui.detail
+package com.example.reminderapp.ui.screen.detail
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.reminderapp.data.repository.ReminderRepository
 import com.example.reminderapp.domain.model.Reminder
-import com.example.reminderapp.notification.ReminderScheduler
+import com.example.reminderapp.core.scheduler.ReminderScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

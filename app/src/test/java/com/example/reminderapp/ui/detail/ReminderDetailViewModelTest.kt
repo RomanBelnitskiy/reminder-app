@@ -8,6 +8,8 @@ import assertk.assertions.isEqualTo
 import androidx.lifecycle.SavedStateHandle
 import com.example.reminderapp.fake.FakeReminderRepository
 import com.example.reminderapp.fake.FakeReminderScheduler
+import com.example.reminderapp.ui.screen.detail.DetailUiEvent
+import com.example.reminderapp.ui.screen.detail.ReminderDetailViewModel
 import com.example.reminderapp.util.MainDispatcherExtension
 import com.example.reminderapp.util.testReminder
 import kotlinx.coroutines.test.runTest

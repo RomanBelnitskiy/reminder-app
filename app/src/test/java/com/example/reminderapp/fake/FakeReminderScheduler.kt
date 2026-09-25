@@ -1,7 +1,7 @@
 package com.example.reminderapp.fake
 
 import com.example.reminderapp.domain.model.Reminder
-import com.example.reminderapp.notification.ReminderScheduler
+import com.example.reminderapp.core.scheduler.ReminderScheduler
 
 class FakeReminderScheduler : ReminderScheduler {
     val scheduled = mutableListOf<Long>()

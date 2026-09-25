@@ -1,9 +1,10 @@
-package com.example.reminderapp.notification
+package com.example.reminderapp.core.worker
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.reminderapp.core.scheduler.ReminderScheduler
 import com.example.reminderapp.data.repository.ReminderRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject

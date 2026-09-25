@@ -20,7 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.example.reminderapp.R
-import com.example.reminderapp.notification.NotificationPermissionHelper
+import com.example.reminderapp.core.notification.NotificationPermissionHelper
 
 class NotificationPermissionState {
     var showNotificationRationale by mutableStateOf(false)

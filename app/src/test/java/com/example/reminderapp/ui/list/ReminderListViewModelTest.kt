@@ -6,6 +6,7 @@ import assertk.assertions.hasSize
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import com.example.reminderapp.fake.FakeReminderRepository
+import com.example.reminderapp.ui.screen.list.ReminderListViewModel
 import com.example.reminderapp.util.MainDispatcherExtension
 import com.example.reminderapp.util.testReminder
 import kotlinx.coroutines.ExperimentalCoroutinesApi

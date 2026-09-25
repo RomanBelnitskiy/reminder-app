@@ -1,4 +1,4 @@
-package com.example.reminderapp.notification
+package com.example.reminderapp.core.notification
 
 import android.Manifest
 import android.app.AlarmManager

@@ -1,4 +1,4 @@
-package com.example.reminderapp.ui.detail
+package com.example.reminderapp.ui.screen.detail
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

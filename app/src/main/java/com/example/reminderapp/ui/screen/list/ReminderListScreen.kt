@@ -1,4 +1,4 @@
-package com.example.reminderapp.ui.list
+package com.example.reminderapp.ui.screen.list
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background

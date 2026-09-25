@@ -1,12 +1,13 @@
-package com.example.reminderapp.notification
+package com.example.reminderapp.core.scheduler
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.example.reminderapp.core.receiver.ReminderReceiver
 import com.example.reminderapp.domain.model.Reminder
-import com.example.reminderapp.notification.NotificationHelper.Companion.EXTRA_REMINDER_ID
+import com.example.reminderapp.core.notification.NotificationHelper.Companion.EXTRA_REMINDER_ID
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,13 +27,13 @@ class ReminderSchedulerImpl @Inject constructor(
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
             alarmManager.setAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
+                AlarmManager.RTC,
                 reminder.reminderDateTime,
                 pendingIntent
             )
         } else {
             alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
+                AlarmManager.RTC,
                 reminder.reminderDateTime,
                 pendingIntent
             )
@@ -43,6 +44,11 @@ class ReminderSchedulerImpl @Inject constructor(
         buildPendingIntent(reminderId, PendingIntent.FLAG_NO_CREATE)?.let {
             alarmManager.cancel(it)
         }
+    }
+
+    override fun reschedule(reminder: Reminder) {
+        cancel(reminder.id)
+        schedule(reminder)
     }
 
     private fun buildPendingIntent(reminderId: Long, flags: Int): PendingIntent? =

@@ -39,6 +39,7 @@
     <string name="label_title">Заголовок</string>
     <string name="label_description">Опис</string>
     <string name="label_type">Тип</string>
+    <string name="label_sound">Звук</string>
     <string name="label_date">Дата</string>
     <string name="label_time">Час</string>
     <string name="label_recurrence">Повторення</string>
@@ -54,6 +55,11 @@
     <string name="reminder_type_medicine">Ліки</string>
     <string name="reminder_type_task">Завдання</string>
     <string name="reminder_type_anniversary">Річниця</string>
+
+    <!-- Reminder sound labes -->
+    <string name="reminder_sound_default">Звичайний</string>
+    <string name="reminder_sound_soft">Спокійний</string>
+    <string name="reminder_sound_loud">Гучний</string>
 
     <!-- RecurrenceType labels -->
     <string name="recurrence_type_one_time">Одноразово</string>

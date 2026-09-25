@@ -2,13 +2,17 @@ package com.example.reminderapp.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.reminderapp.ui.detail.ReminderDetailScreen
-import com.example.reminderapp.ui.edit.ReminderEditScreen
-import com.example.reminderapp.ui.list.ReminderListScreen
-import com.example.reminderapp.ui.settings.SettingsScreen
+import com.example.reminderapp.ui.screen.detail.ReminderDetailScreen
+import com.example.reminderapp.ui.screen.edit.ReminderEditScreenRoute
+import com.example.reminderapp.ui.screen.edit.ReminderEditViewModel
+import com.example.reminderapp.ui.screen.list.ReminderListScreen
+import com.example.reminderapp.ui.screen.settings.SettingsScreen
 import kotlinx.serialization.Serializable
 
 @Serializable object ReminderList
@@ -46,7 +50,9 @@ fun ReminderNavGraph(
 
         composable<ReminderDetail> {
             ReminderDetailScreen(
-                onNavigateBack = { navController.navigateUp() },
+                onNavigateBack = {
+                    navController.navigate(ReminderList)
+                },
                 onNavigateToEdit = { id ->
                     navController.navigate(ReminderEdit(id))
                 }
@@ -54,7 +60,14 @@ fun ReminderNavGraph(
         }
 
         composable<ReminderEdit> {
-            ReminderEditScreen(onNavigateBack = { navController.navigateUp() })
+            val viewModel: ReminderEditViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            ReminderEditScreenRoute(
+                state = uiState,
+                processUiEvent = viewModel::processUiEvent,
+                effects = viewModel.effects,
+                controller = navController
+            )
         }
 
         composable<Settings> {

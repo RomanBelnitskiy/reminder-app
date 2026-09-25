@@ -1,4 +1,4 @@
-package com.example.reminderapp.ui.settings
+package com.example.reminderapp.ui.screen.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

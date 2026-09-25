@@ -1,7 +1,7 @@
 package com.example.reminderapp.di
 
-import com.example.reminderapp.notification.ReminderScheduler
-import com.example.reminderapp.notification.ReminderSchedulerImpl
+import com.example.reminderapp.core.scheduler.ReminderScheduler
+import com.example.reminderapp.core.scheduler.ReminderSchedulerImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
