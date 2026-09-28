@@ -7,6 +7,7 @@ import assertk.assertions.isEqualTo
 import androidx.lifecycle.SavedStateHandle
 import com.example.reminderapp.fake.FakeReminderRepository
 import com.example.reminderapp.fake.FakeReminderScheduler
+import com.example.reminderapp.ui.screen.edit.ReminderEditUiEffect
 import com.example.reminderapp.ui.screen.edit.ReminderEditUiEvent
 import com.example.reminderapp.ui.screen.edit.ReminderEditViewModel
 import com.example.reminderapp.util.MainDispatcherExtension
@@ -42,36 +43,36 @@ class ReminderEditViewModelTest {
         assertThat(state.title).isEqualTo("")
         assertThat(state.titleError).isEqualTo(false)
         assertThat(state.dateError).isEqualTo(false)
-        assertThat(viewModel.isEditMode).isEqualTo(false)
+        assertThat(state.isEditMode).isEqualTo(false)
     }
 
     @Test
     fun `save with blank title sets titleError`() = runTest {
         val viewModel = createViewModel()
-        viewModel.onTitleChange("")
-        viewModel.onSave()
+        viewModel.processUiEvent(ReminderEditUiEvent.OnTitleChange(""))
+        viewModel.processUiEvent(ReminderEditUiEvent.OnSave)
         assertThat(viewModel.uiState.value.titleError).isEqualTo(true)
     }
 
     @Test
     fun `save with past date sets dateError`() = runTest {
         val viewModel = createViewModel()
-        viewModel.onTitleChange("Reminder")
+        viewModel.processUiEvent(ReminderEditUiEvent.OnTitleChange("Reminder"))
         // Set a past date via direct millis (just past midnight of 2000-01-01 UTC)
-        viewModel.onDateChange(946684800000L)
-        viewModel.onSave()
+        viewModel.processUiEvent(ReminderEditUiEvent.OnDateChange(946684800000L))
+        viewModel.processUiEvent(ReminderEditUiEvent.OnSave)
         assertThat(viewModel.uiState.value.dateError).isEqualTo(true)
     }
 
     @Test
     fun `valid save in create mode inserts reminder and emits NavigateBack`() = runTest {
         val viewModel = createViewModel()
-        viewModel.onTitleChange("Meeting")
+        viewModel.processUiEvent(ReminderEditUiEvent.OnTitleChange("Meeting"))
         // Date is default: now + 1 day, which is valid
 
         viewModel.effects.test {
-            viewModel.onSave()
-            assertThat(awaitItem()).isEqualTo(ReminderEditUiEvent.NavigateBack)
+            viewModel.processUiEvent(ReminderEditUiEvent.OnSave)
+            assertThat(awaitItem()).isEqualTo(ReminderEditUiEffect.NavigateBack)
         }
 
         assertThat(repository.getAllActive()).hasSize(1)
@@ -86,17 +87,17 @@ class ReminderEditViewModelTest {
         val viewModel = createViewModel(id = 1L)
         // Wait for loading to complete
         assertThat(viewModel.uiState.value.title).isEqualTo("Birthday")
-        assertThat(viewModel.isEditMode).isEqualTo(true)
+        assertThat(viewModel.uiState.value.isEditMode).isEqualTo(true)
     }
 
     @Test
     fun `cancel emits NavigateBack without saving`() = runTest {
         val viewModel = createViewModel()
-        viewModel.onTitleChange("Should not save")
+        viewModel.processUiEvent(ReminderEditUiEvent.OnTitleChange("Should not save"))
 
         viewModel.effects.test {
-            viewModel.onCancel()
-            assertThat(awaitItem()).isEqualTo(ReminderEditUiEvent.NavigateBack)
+            viewModel.processUiEvent(ReminderEditUiEvent.OnCancelClicked)
+            assertThat(awaitItem()).isEqualTo(ReminderEditUiEffect.NavigateBack)
         }
 
         assertThat(repository.getAllActive()).hasSize(0)

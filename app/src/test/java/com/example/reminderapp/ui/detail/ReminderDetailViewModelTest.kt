@@ -8,8 +8,9 @@ import assertk.assertions.isEqualTo
 import androidx.lifecycle.SavedStateHandle
 import com.example.reminderapp.fake.FakeReminderRepository
 import com.example.reminderapp.fake.FakeReminderScheduler
+import com.example.reminderapp.ui.screen.detail.DetailUiEffect
 import com.example.reminderapp.ui.screen.detail.DetailUiEvent
-import com.example.reminderapp.ui.screen.detail.ReminderDetailViewModel
+import com.example.reminderapp.ui.screen.detail.DetailViewModel
 import com.example.reminderapp.util.MainDispatcherExtension
 import com.example.reminderapp.util.testReminder
 import kotlinx.coroutines.test.runTest
@@ -23,8 +24,8 @@ class ReminderDetailViewModelTest {
     private lateinit var repository: FakeReminderRepository
     private lateinit var scheduler: FakeReminderScheduler
 
-    private fun createViewModel(id: Long): ReminderDetailViewModel =
-        ReminderDetailViewModel(
+    private fun createViewModel(id: Long): DetailViewModel =
+        DetailViewModel(
             repository = repository,
             scheduler = scheduler,
             savedStateHandle = SavedStateHandle(mapOf("id" to id))
@@ -49,7 +50,7 @@ class ReminderDetailViewModelTest {
         repository.insert(testReminder(id = 1L, isActive = true))
         val viewModel = createViewModel(id = 1L)
 
-        viewModel.toggleActive()
+        viewModel.processUiEvent(DetailUiEvent.OnToggleActive)
 
         assertThat(viewModel.uiState.value.reminder?.isActive).isEqualTo(false)
         assertThat(scheduler.cancelled).contains(1L)
@@ -60,7 +61,7 @@ class ReminderDetailViewModelTest {
         repository.insert(testReminder(id = 1L, isActive = false))
         val viewModel = createViewModel(id = 1L)
 
-        viewModel.toggleActive()
+        viewModel.processUiEvent(DetailUiEvent.OnToggleActive)
 
         assertThat(viewModel.uiState.value.reminder?.isActive).isEqualTo(true)
         assertThat(scheduler.scheduled).contains(1L)
@@ -71,9 +72,9 @@ class ReminderDetailViewModelTest {
         repository.insert(testReminder(id = 1L))
         val viewModel = createViewModel(id = 1L)
 
-        viewModel.events.test {
-            viewModel.onDeleteConfirm()
-            assertThat(awaitItem()).isEqualTo(DetailUiEvent.NavigateBack)
+        viewModel.effects.test {
+            viewModel.processUiEvent(DetailUiEvent.OnDeleteConfirm)
+            assertThat(awaitItem()).isEqualTo(DetailUiEffect.NavigateBack)
         }
 
         assertThat(repository.getAllActive()).isEmpty()
@@ -85,10 +86,10 @@ class ReminderDetailViewModelTest {
         repository.insert(testReminder(id = 1L))
         val viewModel = createViewModel(id = 1L)
 
-        viewModel.onDeleteClick()
+        viewModel.processUiEvent(DetailUiEvent.OnDeleteClick)
         assertThat(viewModel.uiState.value.showDeleteDialog).isEqualTo(true)
 
-        viewModel.onDeleteDialogDismiss()
+        viewModel.processUiEvent(DetailUiEvent.OnDeleteDialogDismiss)
         assertThat(viewModel.uiState.value.showDeleteDialog).isEqualTo(false)
     }
 }

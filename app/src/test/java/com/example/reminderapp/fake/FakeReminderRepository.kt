@@ -26,7 +26,7 @@ class FakeReminderRepository : ReminderRepository {
 
     override suspend fun insert(reminder: Reminder): Long {
         val id = if (reminder.id == 0L) nextId++ else reminder.id
-        reminders.value = reminders.value + reminder.copy(id = id)
+        reminders.value += reminder.copy(id = id)
         return id
     }
 

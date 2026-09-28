@@ -35,48 +35,51 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import com.example.reminderapp.R
-import com.example.reminderapp.domain.model.RecurrenceType
 import com.example.reminderapp.domain.model.Reminder
+import com.example.reminderapp.ui.ext.recurrenceLabel
+import com.example.reminderapp.ui.ext.toFormattedDateTime
 import com.example.reminderapp.ui.permission.NotificationPermissionRationaleDialog
 import com.example.reminderapp.ui.permission.rememberNotificationPermissionState
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.flow.Flow
+
+@Composable
+fun DetailScreenRoute(
+    state: DetailUiState,
+    processUiEvent: (DetailUiEvent) -> Unit,
+    effectFlow: Flow<DetailUiEffect>,
+    controller: NavHostController
+) {
+    DetailEffectHandler(effectFlow, controller)
+    DetailScreen(state, processUiEvent)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReminderDetailScreen(
-    onNavigateBack: () -> Unit,
-    onNavigateToEdit: (Long) -> Unit,
-    viewModel: ReminderDetailViewModel = hiltViewModel()
+fun DetailScreen(
+    state: DetailUiState,
+    processUiEvent: (DetailUiEvent) -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val permState = rememberNotificationPermissionState { viewModel.toggleActive() }
-
-    LaunchedEffect(Unit) {
-        viewModel.events.collect { event ->
-            when (event) {
-                DetailUiEvent.NavigateBack -> onNavigateBack()
-            }
-        }
+    val permState = rememberNotificationPermissionState {
+        processUiEvent(DetailUiEvent.OnToggleActive)
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(uiState.reminder?.title ?: "") },
+                title = { Text(state.reminder?.title ?: "") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(
+                        onClick = {
+                            processUiEvent(DetailUiEvent.OnBackClick)
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.action_back)
@@ -84,8 +87,12 @@ fun ReminderDetailScreen(
                     }
                 },
                 actions = {
-                    uiState.reminder?.let { reminder ->
-                        IconButton(onClick = { onNavigateToEdit(reminder.id) }) {
+                    state.reminder?.let {
+                        IconButton(
+                            onClick = {
+                                processUiEvent(DetailUiEvent.OnEditClick)
+                            }
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
                                 contentDescription = stringResource(R.string.action_edit)
@@ -97,7 +104,7 @@ fun ReminderDetailScreen(
         }
     ) { paddingValues ->
         when {
-            uiState.isLoading -> {
+            state.isLoading -> {
                 Box(
                     modifier = Modifier.fillMaxSize().padding(paddingValues),
                     contentAlignment = Alignment.Center
@@ -105,7 +112,7 @@ fun ReminderDetailScreen(
                     CircularProgressIndicator()
                 }
             }
-            uiState.reminder == null -> {
+            state.reminder == null -> {
                 Box(
                     modifier = Modifier.fillMaxSize().padding(paddingValues),
                     contentAlignment = Alignment.Center
@@ -115,15 +122,17 @@ fun ReminderDetailScreen(
             }
             else -> {
                 ReminderDetailContent(
-                    reminder = uiState.reminder!!,
+                    reminder = state.reminder,
                     onToggleActive = {
-                        if (uiState.reminder?.isActive == false) {
+                        if (!state.reminder.isActive) {
                             permState.requestOrProceed()
                         } else {
-                            viewModel.toggleActive()
+                            processUiEvent(DetailUiEvent.OnToggleActive)
                         }
                     },
-                    onDeleteClick = viewModel::onDeleteClick,
+                    onDeleteClick = {
+                        processUiEvent(DetailUiEvent.OnDeleteClick)
+                    },
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -132,13 +141,19 @@ fun ReminderDetailScreen(
 
     NotificationPermissionRationaleDialog(permState)
 
-    if (uiState.showDeleteDialog) {
+    if (state.showDeleteDialog) {
         AlertDialog(
-            onDismissRequest = viewModel::onDeleteDialogDismiss,
+            onDismissRequest = {
+                processUiEvent(DetailUiEvent.OnDeleteDialogDismiss)
+            },
             title = { Text(stringResource(R.string.dialog_delete_title)) },
             text = { Text(stringResource(R.string.dialog_delete_message)) },
             confirmButton = {
-                TextButton(onClick = viewModel::onDeleteConfirm) {
+                TextButton(
+                    onClick = {
+                        processUiEvent(DetailUiEvent.OnDeleteConfirm)
+                    }
+                ) {
                     Text(
                         text = stringResource(R.string.action_delete),
                         color = MaterialTheme.colorScheme.error
@@ -146,7 +161,11 @@ fun ReminderDetailScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::onDeleteDialogDismiss) {
+                TextButton(
+                    onClick = {
+                        processUiEvent(DetailUiEvent.OnDeleteDialogDismiss)
+                    }
+                ) {
                     Text(stringResource(R.string.undo))
                 }
             }
@@ -242,19 +261,4 @@ private fun DetailRow(
         Spacer(Modifier.width(12.dp))
         Text(text = text, style = MaterialTheme.typography.bodyMedium)
     }
-}
-
-@Composable
-private fun Reminder.recurrenceLabel(): String {
-    if (recurrenceType == RecurrenceType.CUSTOM && recurrenceInterval != null) {
-        return stringResource(R.string.detail_interval_format, recurrenceInterval)
-    }
-    return stringResource(recurrenceType.labelRes)
-}
-
-private fun Long.toFormattedDateTime(): String {
-    val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
-    return Instant.ofEpochMilli(this)
-        .atZone(ZoneId.systemDefault())
-        .format(formatter)
 }
