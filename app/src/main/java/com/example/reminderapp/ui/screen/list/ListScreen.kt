@@ -48,25 +48,32 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import com.example.reminderapp.R
 import com.example.reminderapp.domain.model.Reminder
+import com.example.reminderapp.ui.ext.toFormattedDateTime
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+
+@Composable
+fun ListScreenRoute(
+    state: ListUiState,
+    reminders: List<Reminder>,
+    processUiEvent: (ListUiEvent) -> Unit,
+    effectFlow: Flow<ListUiEffect>,
+    controller: NavHostController
+) {
+    ListEffectHandler(effectFlow, controller)
+    ListScreen(state, reminders, processUiEvent)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReminderListScreen(
-    onNavigateToDetail: (Long) -> Unit,
-    onNavigateToCreate: () -> Unit,
-    onNavigateToSettings: () -> Unit,
-    viewModel: ReminderListViewModel = hiltViewModel()
+fun ListScreen(
+    state: ListUiState,
+    reminders: List<Reminder>,
+    processUiEvent: (ListUiEvent) -> Unit
 ) {
-    val reminders by viewModel.reminders.collectAsStateWithLifecycle()
-    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -78,7 +85,11 @@ fun ReminderListScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.screen_title_reminders)) },
                 actions = {
-                    IconButton(onClick = onNavigateToSettings) {
+                    IconButton(
+                        onClick = {
+                            processUiEvent(ListUiEvent.OnSettingsClick)
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = stringResource(R.string.action_settings)
@@ -88,7 +99,11 @@ fun ReminderListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToCreate) {
+            FloatingActionButton(
+                onClick = {
+                    processUiEvent(ListUiEvent.OnCreateClick)
+                }
+            ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = stringResource(R.string.fab_create_reminder)
@@ -99,13 +114,19 @@ fun ReminderListScreen(
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             OutlinedTextField(
-                value = searchQuery,
-                onValueChange = viewModel::onSearchQueryChange,
+                value = state.searchQuery,
+                onValueChange = {
+                    processUiEvent(ListUiEvent.OnSearchQueryChange(it))
+                },
                 placeholder = { Text(stringResource(R.string.search_placeholder)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
+                    if (state.searchQuery.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                processUiEvent(ListUiEvent.OnSearchQueryChange(""))
+                            }
+                        ) {
                             Icon(Icons.Default.Close, contentDescription = null)
                         }
                     }
@@ -132,9 +153,11 @@ fun ReminderListScreen(
                     items(reminders, key = { it.id }) { reminder ->
                         ReminderSwipeItem(
                             reminder = reminder,
-                            onClick = { onNavigateToDetail(reminder.id) },
+                            onClick = {
+                                processUiEvent(ListUiEvent.OnReminderClick(reminder.id))
+                            },
                             onDismiss = {
-                                viewModel.deleteReminder(reminder)
+                                processUiEvent(ListUiEvent.OnDeleteReminder(reminder))
                                 scope.launch {
                                     val result = snackbarHostState.showSnackbar(
                                         message = deletedMessage,
@@ -142,7 +165,7 @@ fun ReminderListScreen(
                                         duration = SnackbarDuration.Short
                                     )
                                     if (result == SnackbarResult.ActionPerformed) {
-                                        viewModel.undoDelete()
+                                        processUiEvent(ListUiEvent.OnUndoDeleteReminder)
                                     }
                                 }
                             }
@@ -244,11 +267,4 @@ private fun ReminderCard(
             }
         }
     }
-}
-
-private fun Long.toFormattedDateTime(): String {
-    val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
-    return Instant.ofEpochMilli(this)
-        .atZone(ZoneId.systemDefault())
-        .format(formatter)
 }

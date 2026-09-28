@@ -15,14 +15,9 @@ import com.example.reminderapp.ui.screen.detail.DetailScreenRoute
 import com.example.reminderapp.ui.screen.detail.DetailViewModel
 import com.example.reminderapp.ui.screen.edit.EditScreenRoute
 import com.example.reminderapp.ui.screen.edit.EditViewModel
-import com.example.reminderapp.ui.screen.list.ReminderListScreen
+import com.example.reminderapp.ui.screen.list.ListScreenRoute
+import com.example.reminderapp.ui.screen.list.ListViewModel
 import com.example.reminderapp.ui.screen.settings.SettingsScreen
-import kotlinx.serialization.Serializable
-
-@Serializable object ReminderList
-@Serializable data class ReminderDetail(val id: Long, val openedFromNotification: Boolean = false)
-@Serializable data class ReminderEdit(val id: Long? = null)
-@Serializable object Settings
 
 @Composable
 fun ReminderNavGraph(
@@ -35,31 +30,32 @@ fun ReminderNavGraph(
 
     NavHost(
         navController = navController,
-        startDestination = ReminderList
+        startDestination = ReminderRoute.List
     ) {
-        composable<ReminderList> {
+        composable<ReminderRoute.List> {
+            val viewModel: ListViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val reminders by viewModel.reminders.collectAsStateWithLifecycle()
+
             LaunchedEffect(openReminderId) {
                 openReminderId?.let { reminderId ->
                     if (handledReminderId != reminderId) {
                         handledReminderId = reminderId
-                        navController.navigate(ReminderDetail(reminderId, true))
+                        navController.navigate(ReminderRoute.Detail(reminderId, true))
                     }
                 }
             }
-            ReminderListScreen(
-                onNavigateToDetail = { id ->
-                    navController.navigate(ReminderDetail(id))
-                },
-                onNavigateToCreate = {
-                    navController.navigate(ReminderEdit())
-                },
-                onNavigateToSettings = {
-                    navController.navigate(Settings)
-                }
+
+            ListScreenRoute(
+                state = uiState,
+                reminders = reminders,
+                processUiEvent = viewModel::processUiEvent,
+                effectFlow = viewModel.effects,
+                controller = navController
             )
         }
 
-        composable<ReminderDetail> {
+        composable< ReminderRoute.Detail> {
             val viewModel: DetailViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             DetailScreenRoute(
@@ -70,7 +66,7 @@ fun ReminderNavGraph(
             )
         }
 
-        composable<ReminderEdit> {
+        composable< ReminderRoute.Edit> {
             val viewModel: EditViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             EditScreenRoute(
@@ -81,7 +77,7 @@ fun ReminderNavGraph(
             )
         }
 
-        composable<Settings> {
+        composable< ReminderRoute.Settings> {
             SettingsScreen(onNavigateBack = { navController.navigateUp() })
         }
     }

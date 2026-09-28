@@ -3,7 +3,7 @@ package com.example.reminderapp.ui.screen.detail
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import com.example.reminderapp.core.ext.collectWithLifecycle
-import com.example.reminderapp.ui.navigation.ReminderEdit
+import com.example.reminderapp.ui.navigation.ReminderRoute
 import kotlinx.coroutines.flow.Flow
 
 @Composable
@@ -18,7 +18,7 @@ fun DetailEffectHandler(
             }
 
             is DetailUiEffect.NavigateToEdit -> {
-                controller.navigate(ReminderEdit(effect.reminderId))
+                controller.navigate(ReminderRoute.Edit(effect.reminderId))
             }
         }
     }

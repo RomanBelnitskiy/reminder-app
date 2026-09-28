@@ -6,7 +6,8 @@ import assertk.assertions.hasSize
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import com.example.reminderapp.fake.FakeReminderRepository
-import com.example.reminderapp.ui.screen.list.ReminderListViewModel
+import com.example.reminderapp.ui.screen.list.ListUiEvent
+import com.example.reminderapp.ui.screen.list.ListViewModel
 import com.example.reminderapp.util.MainDispatcherExtension
 import com.example.reminderapp.util.testReminder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,12 +22,12 @@ import org.junit.jupiter.api.extension.ExtendWith
 class ReminderListViewModelTest {
 
     private lateinit var repository: FakeReminderRepository
-    private lateinit var viewModel: ReminderListViewModel
+    private lateinit var viewModel: ListViewModel
 
     @BeforeEach
     fun setup() {
         repository = FakeReminderRepository()
-        viewModel = ReminderListViewModel(repository)
+        viewModel = ListViewModel(repository)
     }
 
     @Test
@@ -58,7 +59,7 @@ class ReminderListViewModelTest {
             advanceTimeBy(301L) // activate upstream for empty query
             awaitItem() // now gets all 2 reminders
 
-            viewModel.onSearchQueryChange("birth")
+            viewModel.processUiEvent(ListUiEvent.OnSearchQueryChange("birth"))
             advanceTimeBy(301L) // pass debounce for new query
 
             val result = awaitItem()
@@ -77,7 +78,7 @@ class ReminderListViewModelTest {
             advanceTimeBy(301L) // activate upstream
             repository.insert(reminder)
             assertThat(awaitItem()).hasSize(1)
-            viewModel.deleteReminder(reminder)
+            viewModel.processUiEvent(ListUiEvent.OnDeleteReminder(reminder))
             assertThat(awaitItem()).isEmpty()
             cancelAndIgnoreRemainingEvents()
         }
@@ -92,9 +93,9 @@ class ReminderListViewModelTest {
             advanceTimeBy(301L)
             repository.insert(reminder)
             awaitItem() // [reminder]
-            viewModel.deleteReminder(reminder)
+            viewModel.processUiEvent(ListUiEvent.OnDeleteReminder(reminder))
             awaitItem() // []
-            viewModel.undoDelete()
+            viewModel.processUiEvent(ListUiEvent.OnUndoDeleteReminder)
             assertThat(awaitItem()).hasSize(1)
             cancelAndIgnoreRemainingEvents()
         }
