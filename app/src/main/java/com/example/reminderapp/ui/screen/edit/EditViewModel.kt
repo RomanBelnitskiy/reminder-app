@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class ReminderEditViewModel @Inject constructor(
+class EditViewModel @Inject constructor(
     private val repository: ReminderRepository,
     private val scheduler: ReminderScheduler,
     savedStateHandle: SavedStateHandle
@@ -33,10 +33,10 @@ class ReminderEditViewModel @Inject constructor(
 
     private val reminderId: Long? = savedStateHandle.get<Long>("id")
 
-    private val _uiState = MutableStateFlow(ReminderEditUiState())
-    val uiState: StateFlow<ReminderEditUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(EditUiState())
+    val uiState: StateFlow<EditUiState> = _uiState.asStateFlow()
 
-    private val _effects = Channel<ReminderEditUiEffect>()
+    private val _effects = Channel<EditUiEffect>()
     val effects = _effects.receiveAsFlow()
 
     private var originalCreatedAt: Long = System.currentTimeMillis()
@@ -75,19 +75,19 @@ class ReminderEditViewModel @Inject constructor(
         }
     }
 
-    fun processUiEvent(event: ReminderEditUiEvent) {
+    fun processUiEvent(event: EditUiEvent) {
         when(event) {
-            ReminderEditUiEvent.OnCancelClicked -> onNavigateBack()
-            ReminderEditUiEvent.OnSave -> onSave()
-            ReminderEditUiEvent.OnNavigateBack -> onNavigateBack()
-            is ReminderEditUiEvent.OnTitleChange -> onTitleChange(event.value)
-            is ReminderEditUiEvent.OnDescriptionChange -> onDescriptionChange(event.value)
-            is ReminderEditUiEvent.OnTypeChange -> onTypeChange(event.value)
-            is ReminderEditUiEvent.OnSoundChange -> onSoundChange(event.value)
-            is ReminderEditUiEvent.OnDateChange -> onDateChange(event.value)
-            is ReminderEditUiEvent.OnTimeChange -> onTimeChange(event.hour, event.minute)
-            is ReminderEditUiEvent.OnRecurrenceTypeChange -> onRecurrenceTypeChange(event.value)
-            is ReminderEditUiEvent.OnRecurrenceIntervalChange -> onRecurrenceIntervalChange(event.value)
+            EditUiEvent.OnCancelClicked -> onNavigateBack()
+            EditUiEvent.OnSave -> onSave()
+            EditUiEvent.OnNavigateBack -> onNavigateBack()
+            is EditUiEvent.OnTitleChange -> onTitleChange(event.value)
+            is EditUiEvent.OnDescriptionChange -> onDescriptionChange(event.value)
+            is EditUiEvent.OnTypeChange -> onTypeChange(event.value)
+            is EditUiEvent.OnSoundChange -> onSoundChange(event.value)
+            is EditUiEvent.OnDateChange -> onDateChange(event.value)
+            is EditUiEvent.OnTimeChange -> onTimeChange(event.hour, event.minute)
+            is EditUiEvent.OnRecurrenceTypeChange -> onRecurrenceTypeChange(event.value)
+            is EditUiEvent.OnRecurrenceIntervalChange -> onRecurrenceIntervalChange(event.value)
         }
     }
 
@@ -158,13 +158,13 @@ class ReminderEditViewModel @Inject constructor(
                 reminder.copy(id = newId)
             }
             scheduler.schedule(scheduledReminder)
-            _effects.send(ReminderEditUiEffect.NavigateBack)
+            _effects.send(EditUiEffect.NavigateBack)
         }
     }
 
     private fun onNavigateBack() {
         viewModelScope.launch {
-            _effects.send(ReminderEditUiEffect.NavigateBack)
+            _effects.send(EditUiEffect.NavigateBack)
         }
     }
 }

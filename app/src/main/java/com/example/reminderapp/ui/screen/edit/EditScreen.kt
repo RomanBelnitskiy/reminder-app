@@ -60,26 +60,26 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReminderEditScreenRoute(
-    state: ReminderEditUiState,
-    processUiEvent: (ReminderEditUiEvent) -> Unit,
-    effects: Flow<ReminderEditUiEffect>,
+fun EditScreenRoute(
+    state: EditUiState,
+    processUiEvent: (EditUiEvent) -> Unit,
+    effects: Flow<EditUiEffect>,
     controller: NavHostController
 ) {
-    ReminderEditEffectHandler(effects, controller)
+    EditEffectHandler(effects, controller)
 
-    ReminderEditScreen(state, processUiEvent)
+    EditScreen(state, processUiEvent)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReminderEditScreen(
-    state: ReminderEditUiState,
-    processUiEvent: (ReminderEditUiEvent) -> Unit
+fun EditScreen(
+    state: EditUiState,
+    processUiEvent: (EditUiEvent) -> Unit
 ) {
 
     val permState = rememberNotificationPermissionState {
-        processUiEvent(ReminderEditUiEvent.OnSave)
+        processUiEvent(EditUiEvent.OnSave)
     }
     NotificationPermissionRationaleDialog(permState)
 
@@ -97,7 +97,7 @@ fun ReminderEditScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            processUiEvent(ReminderEditUiEvent.OnNavigateBack)
+                            processUiEvent(EditUiEvent.OnNavigateBack)
                         }
                     ) {
                         Icon(
@@ -117,35 +117,35 @@ fun ReminderEditScreen(
                 CircularProgressIndicator()
             }
         } else {
-            ReminderEditForm(
+            EditForm(
                 uiState = state,
                 onTitleChange = {
-                    processUiEvent(ReminderEditUiEvent.OnTitleChange(it))
+                    processUiEvent(EditUiEvent.OnTitleChange(it))
                 },
                 onDescriptionChange = {
-                    processUiEvent(ReminderEditUiEvent.OnDescriptionChange(it))
+                    processUiEvent(EditUiEvent.OnDescriptionChange(it))
                 },
                 onTypeChange = {
-                    processUiEvent(ReminderEditUiEvent.OnTypeChange(it))
+                    processUiEvent(EditUiEvent.OnTypeChange(it))
                 },
                 onSoundChange = {
-                    processUiEvent(ReminderEditUiEvent.OnSoundChange(it))
+                    processUiEvent(EditUiEvent.OnSoundChange(it))
                 },
                 onDateChange = {
-                    processUiEvent(ReminderEditUiEvent.OnDateChange(it))
+                    processUiEvent(EditUiEvent.OnDateChange(it))
                 },
                 onTimeChange = { hour, minute ->
-                    processUiEvent(ReminderEditUiEvent.OnTimeChange(hour, minute))
+                    processUiEvent(EditUiEvent.OnTimeChange(hour, minute))
                 },
                 onRecurrenceTypeChange = {
-                    processUiEvent(ReminderEditUiEvent.OnRecurrenceTypeChange(it))
+                    processUiEvent(EditUiEvent.OnRecurrenceTypeChange(it))
                 },
                 onRecurrenceIntervalChange = {
-                    processUiEvent(ReminderEditUiEvent.OnRecurrenceIntervalChange(it))
+                    processUiEvent(EditUiEvent.OnRecurrenceIntervalChange(it))
                 },
                 onSave = permState::requestOrProceed,
                 onCancel = {
-                    processUiEvent(ReminderEditUiEvent.OnCancelClicked)
+                    processUiEvent(EditUiEvent.OnCancelClicked)
                 },
                 modifier = Modifier.padding(paddingValues)
             )
@@ -156,8 +156,8 @@ fun ReminderEditScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ReminderEditForm(
-    uiState: ReminderEditUiState,
+private fun EditForm(
+    uiState: EditUiState,
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onTypeChange: (ReminderType) -> Unit,

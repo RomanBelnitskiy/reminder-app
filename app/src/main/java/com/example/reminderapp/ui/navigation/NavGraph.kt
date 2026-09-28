@@ -13,8 +13,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.reminderapp.ui.screen.detail.DetailScreenRoute
 import com.example.reminderapp.ui.screen.detail.DetailViewModel
-import com.example.reminderapp.ui.screen.edit.ReminderEditScreenRoute
-import com.example.reminderapp.ui.screen.edit.ReminderEditViewModel
+import com.example.reminderapp.ui.screen.edit.EditScreenRoute
+import com.example.reminderapp.ui.screen.edit.EditViewModel
 import com.example.reminderapp.ui.screen.list.ReminderListScreen
 import com.example.reminderapp.ui.screen.settings.SettingsScreen
 import kotlinx.serialization.Serializable
@@ -71,9 +71,9 @@ fun ReminderNavGraph(
         }
 
         composable<ReminderEdit> {
-            val viewModel: ReminderEditViewModel = hiltViewModel()
+            val viewModel: EditViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            ReminderEditScreenRoute(
+            EditScreenRoute(
                 state = uiState,
                 processUiEvent = viewModel::processUiEvent,
                 effects = viewModel.effects,

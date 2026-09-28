@@ -6,13 +6,13 @@ import com.example.reminderapp.core.ext.collectWithLifecycle
 import kotlinx.coroutines.flow.Flow
 
 @Composable
-fun ReminderEditEffectHandler(
-    effects: Flow<ReminderEditUiEffect>,
+fun EditEffectHandler(
+    effects: Flow<EditUiEffect>,
     controller: NavHostController
 ) {
     effects.collectWithLifecycle { effect ->
         when (effect) {
-            ReminderEditUiEffect.NavigateBack -> {
+            EditUiEffect.NavigateBack -> {
                 controller.navigateUp()
             }
         }
